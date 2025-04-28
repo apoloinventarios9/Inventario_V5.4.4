@@ -471,64 +471,96 @@
       </div>
 
       <div id="conteoModule" class="module-section">
-          <div class="compact-card card">
+          <!-- Indicador de Modo Continuo -->
+          <div id="continuousModeBanner" class="alert alert-warning text-center" style="display: none;">
+            <strong>Modo Continuo Activo</strong> - <span id="pendingCount">0</span> productos pendientes de guardar
+          </div>
+
+          <!-- Lista Temporal -->
+          <div id="temporaryListContainer" style="display: none;">
+            <table class="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Nombre</th>
+                  <th>Cantidad</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="temporaryList"></tbody>
+            </table>
+            <div class="text-right">
+              <strong>Total Productos:</strong> <span id="totalProducts">0</span>
+            </div>
+            <div class="mt-3 text-center">
+              <button id="saveBatchBtn" class="btn btn-success btn-sm mr-2" onclick="saveBatch()">
+                <i class="fas fa-save"></i> Guardar Todo
+              </button>
+              <button id="cancelBatchBtn" class="btn btn-danger btn-sm" onclick="cancelBatch()">
+                <i class="fas fa-times"></i> Cancelar Lote
+              </button>
+            </div>
+          </div>
+
+          <!-- Formulario Regular -->
+          <div id="regularFormContainer">
+            <div class="compact-card card">
               <div class="card-body p-2">
-                  <div style="position: relative;">
-                    <div class="input-group mb-2">
-                        <input type="text" id="search" class="form-control form-control-sm" placeholder="Buscar producto..." disabled>
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary btn-sm" type="button" id="scanButton" title="Escanear código">
-                                <i class="fas fa-camera"></i>
-                            </button>
-                        </div>
+                <div style="position: relative;">
+                  <div class="input-group mb-2">
+                    <input type="text" id="search" class="form-control form-control-sm" placeholder="Buscar producto..." disabled>
+                    <div class="input-group-append">
+                      <button class="btn btn-outline-secondary btn-sm" type="button" id="scanButton" title="Escanear código">
+                        <i class="fas fa-camera"></i>
+                      </button>
                     </div>
-                    <div id="suggestions" class="suggestions" style="display:none;"></div>
-                    <div id="unknownCode" class="unknown-code">Código desconocido</div>
                   </div>
+                  <div id="suggestions" class="suggestions" style="display:none;"></div>
+                  <div id="unknownCode" class="unknown-code">Código desconocido</div>
+                </div>
 
-                  <div id="product-info" class="mb-2" style="display:none;">
-                      <small class="text-muted d-block">Código: <span id="product-code"></span></small>
-                      <small class="text-muted d-block">Nombre: <span id="product-name"></span></small>
-                      <div class="status-container">
-                          <span id="product-status" class="status-box"></span>
-                          <span id="product-stock" class="status-box"></span>
-                      </div>
+                <div id="product-info" class="mb-2" style="display:none;">
+                  <small class="text-muted d-block">Código: <span id="product-code"></span></small>
+                  <small class="text-muted d-block">Nombre: <span id="product-name"></span></small>
+                  <div class="status-container">
+                    <span id="product-status" class="status-box"></span>
+                    <span id="product-stock" class="status-box"></span>
                   </div>
+                </div>
 
-                  <div class="state-dropdown">
-                      <select id="state">
-                          <option value="Buen estado" selected>Buen estado</option>
-                          <option value="Vencido">Vencido</option>
-                          <option value="Roto">Roto</option>
-                          <option value="Incompleto">Incompleto</option>
-                          <option value="Otros">Otros</option>
-                      </select>
+                <div class="state-dropdown">
+                  <select id="state">
+                    <option value="Buen estado" selected>Buen estado</option>
+                    <option value="Vencido">Vencido</option>
+                    <option value="Roto">Roto</option>
+                    <option value="Incompleto">Incompleto</option>
+                    <option value="Otros">Otros</option>
+                  </select>
+                </div>
+
+                <form id="countForm" class="compact-form">
+                  <div class="row">
+                    <div class="col-6">
+                      <input type="number" id="quantity" class="form-control form-control-sm" placeholder="Cantidad" min="0" required>
+                    </div>
+                    <div class="col-6">
+                      <input type="text" id="location" class="form-control form-control-sm" placeholder="Ubicación">
+                    </div>
                   </div>
-
-                  <form id="countForm" class="compact-form">
-                      <div class="row">
-                          <div class="col-6">
-                              <input type="number" id="quantity" class="form-control form-control-sm" placeholder="Cantidad" min="0" required>
-                          </div>
-                          <div class="col-6">
-                              <input type="text" id="location" class="form-control form-control-sm" placeholder="Ubicación">
-                          </div>
-                      </div>
-                      
-                      <textarea id="notes" class="form-control form-control-sm mt-1" rows="2" placeholder="Notas"></textarea>
-                      
-                      <div class="row mt-2">
-                          <div class="col-6">
-                              <button type="button" id="saveBtn" class="btn btn-success btn-sm btn-block" onclick="checkPermission(saveCount)" disabled>Guardar</button>
-                          </div>
-                          <div class="col-6">
-                              <button type="button" class="btn btn-secondary btn-sm btn-block" onclick="clearForm()">Cancelar</button>
-                          </div>
-                      </div>
-                  </form>
-
-                  <div id="history-list" class="mt-3"></div>
+                  <textarea id="notes" class="form-control form-control-sm mt-1" rows="2" placeholder="Notas"></textarea>
+                  <div class="row mt-2">
+                    <div class="col-6">
+                      <button type="button" id="saveBtn" class="btn btn-success btn-sm btn-block" onclick="checkPermission(saveCount)" disabled>Guardar</button>
+                    </div>
+                    <div class="col-6">
+                      <button type="button" class="btn btn-secondary btn-sm btn-block" onclick="clearForm()">Cancelar</button>
+                    </div>
+                  </div>
+                </form>
+                <div id="history-list" class="mt-3"></div>
               </div>
+            </div>
           </div>
       </div>
       
@@ -688,6 +720,10 @@ let html5QrCode = null;
 const MAX_SUGGESTIONS = 10;
 let cameraPermissionGranted = false;
 
+// Variables globales para el modo continuo
+let temporaryList = [];
+let isContinuousModeEnabled = false;
+
 // Función para verificar el estado del campo de ubicación al cargar la página
 function checkLocationFieldState() {
   const isDisabled = localStorage.getItem('ubicacionDeshabilitada') === 'true';
@@ -775,31 +811,170 @@ function toggleContinuousMode() {
     }
   }).then((result) => {
     if (result.isConfirmed) {
-      const isContinuousModeEnabled = localStorage.getItem('registroContinuoHabilitado') === 'true';
-      localStorage.setItem('registroContinuoHabilitado', !isContinuousModeEnabled);
-      updateContinuousModeUI(!isContinuousModeEnabled);
+      isContinuousModeEnabled = !isContinuousModeEnabled;
+      localStorage.setItem('registroContinuoHabilitado', isContinuousModeEnabled);
+      updateContinuousModeUI(isContinuousModeEnabled);
       Swal.fire(
         'Éxito',
-        !isContinuousModeEnabled ? 'Modo Registro Continuo habilitado' : 'Modo Registro Continuo deshabilitado',
+        isContinuousModeEnabled ? 'Modo Registro Continuo habilitado' : 'Modo Registro Continuo deshabilitado',
         'success'
       );
     }
   });
 }
 
-// Actualizar la interfaz del botón de Modo Registro Continuo
+// Actualizar la interfaz del modo continuo
 function updateContinuousModeUI(isEnabled) {
-  const toggleBtn = document.getElementById('toggleContinuousModeBtn');
-  const btnText = document.getElementById('continuousModeBtnText');
+  const banner = document.getElementById('continuousModeBanner');
+  const regularForm = document.getElementById('regularFormContainer');
+  const temporaryListContainer = document.getElementById('temporaryListContainer');
+
   if (isEnabled) {
-    toggleBtn.classList.remove('btn-warning');
-    toggleBtn.classList.add('btn-success');
-    btnText.textContent = 'Habilitar Modo Continuo';
+    banner.style.display = 'block';
+    regularForm.style.display = 'none';
+    temporaryListContainer.style.display = 'block';
+    temporaryList = [];
+    updateTemporaryListUI();
   } else {
-    toggleBtn.classList.remove('btn-success');
-    toggleBtn.classList.add('btn-warning');
-    btnText.textContent = 'Deshabilitar Modo Continuo';
+    banner.style.display = 'none';
+    regularForm.style.display = 'block';
+    temporaryListContainer.style.display = 'none';
   }
+}
+
+// Función para manejar el escaneo en modo continuo
+function handleContinuousModeScan(productCode) {
+  const product = products.find(p => p.code === productCode || p.barcodes.includes(productCode));
+  if (!product) {
+    Swal.fire('Error', 'Producto no encontrado', 'error');
+    return;
+  }
+
+  // Buscar si el producto ya está en la lista temporal
+  const existingItem = temporaryList.find(item => item.code === product.code);
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    temporaryList.push({
+      code: product.code,
+      name: product.name,
+      quantity: 1,
+      state: 'Buen estado'
+    });
+  }
+
+  updateTemporaryListUI();
+}
+
+// Actualizar la interfaz de la lista temporal
+function updateTemporaryListUI() {
+  const listContainer = document.getElementById('temporaryList');
+  const pendingCount = document.getElementById('pendingCount');
+  const totalProducts = document.getElementById('totalProducts');
+
+  listContainer.innerHTML = '';
+  temporaryList.forEach((item, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${item.code}</td>
+      <td>${item.name}</td>
+      <td>${item.quantity}</td>
+      <td>${item.state}</td>
+      <td>
+        <button class="btn btn-sm btn-primary" onclick="editTemporaryItem(${index})">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="removeTemporaryItem(${index})">Eliminar</button>
+      </td>
+    `;
+    listContainer.appendChild(row);
+  });
+
+  pendingCount.textContent = temporaryList.length;
+  totalProducts.textContent = temporaryList.length;
+}
+
+// Editar un ítem de la lista temporal
+function editTemporaryItem(index) {
+  const item = temporaryList[index];
+  Swal.fire({
+    title: 'Editar Producto',
+    html: `
+      <input id="editQuantity" type="number" class="swal2-input" value="${item.quantity}" min="1">
+      <select id="editState" class="swal2-input">
+        <option value="Buen estado" ${item.state === 'Buen estado' ? 'selected' : ''}>Buen estado</option>
+        <option value="Vencido" ${item.state === 'Vencido' ? 'selected' : ''}>Vencido</option>
+        <option value="Roto" ${item.state === 'Roto' ? 'selected' : ''}>Roto</option>
+        <option value="Incompleto" ${item.state === 'Incompleto' ? 'selected' : ''}>Incompleto</option>
+        <option value="Otros" ${item.state === 'Otros' ? 'selected' : ''}>Otros</option>
+      </select>
+    `,
+    preConfirm: () => {
+      const quantity = parseInt(document.getElementById('editQuantity').value);
+      const state = document.getElementById('editState').value;
+      if (isNaN(quantity) || quantity <= 0) {
+        Swal.showValidationMessage('Cantidad inválida');
+        return false;
+      }
+      return { quantity, state };
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      temporaryList[index].quantity = result.value.quantity;
+      temporaryList[index].state = result.value.state;
+      updateTemporaryListUI();
+    }
+  });
+}
+
+// Eliminar un ítem de la lista temporal
+function removeTemporaryItem(index) {
+  temporaryList.splice(index, 1);
+  updateTemporaryListUI();
+}
+
+// Guardar todo el lote
+function saveBatch() {
+  if (temporaryList.length === 0) {
+    Swal.fire('Advertencia', 'No hay productos para guardar', 'warning');
+    return;
+  }
+
+  // Validar y guardar cada ítem
+  temporaryList.forEach(item => {
+    const product = products.find(p => p.code === item.code);
+    counts.push({
+      productCode: product.code,
+      productName: product.name,
+      productMeasure: product.measure,
+      quantity: item.quantity,
+      location: 'N/A',
+      notes: '',
+      state: item.state,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  localStorage.setItem('inventoryCounts', JSON.stringify(counts));
+  Swal.fire('Éxito', 'Lote guardado correctamente', 'success');
+  temporaryList = [];
+  updateTemporaryListUI();
+  loadFullHistory();
+}
+
+// Cancelar el lote
+function cancelBatch() {
+  Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Esto eliminará todos los productos del lote temporal.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, cancelar',
+    cancelButtonText: 'No'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      temporaryList = [];
+      updateTemporaryListUI();
+    }
+  });
 }
 
 // Inicializar el estado del Modo Registro Continuo
