@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Conteo de Inventario</title>
+  
+  <!-- Librerías externas -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdn.jsdelivr.net/npm/read-excel-file@5.x/bundle/read-excel-file.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      padding: 15px;
+      background-color: #f8f9fa;
+      min-height: 100vh;
+      position: relative;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    #mainContent {
+      display: none;
+    }
+    
+    .container-fluid {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #0066cc;
+      padding: 8px;
+      background-color: rgba(255,255,255,0.9);
+      font-size: 0.7rem;
+      border-top: 1px solid #ddd;
+      z-index: 1000;
+    }
+
+    .compact-card {
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .compact-card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .module-section {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .module-section.active {
+      display: block;
+    }
+
+    .compact-form .form-group {
+      margin-bottom: 0.8rem;
+    }
+
+    .history-item {
+      padding: 8px;
+      font-size: 0.8rem;
+      border-bottom: 1px solid #ddd;
+      transition: background-color 0.3s ease;
+    }
+    
+    .history-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .full-history-item {
+      padding: 8px;
+      font-size: 0.8rem;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      transition: background-color 0.3s ease;
+    }
+    
+    .full-history-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .full-history-item > div {
+      flex: 1;
+      min-width: 120px;
+      margin: 2px 0;
+    }
+
+    #scannerVideo {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .state-dropdown {
+      margin: 10px 0;
+    }
+    .state-dropdown select {
+      width: 100%;
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 12px;
+    }
+
+    .suggestions {
+      position: absolute;
+      top: 42px;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 0 0 4px 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1050;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .suggestion-item {
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color 0.2s ease;
+    }
+    
+    .suggestion-item:hover {
+      background-color: #e9f7fe;
+    }
+    
+    .suggestion-item.highlighted {
+      background-color: #d4edff;
+      font-weight: bold;
+    }
+
+    .swal2-popup {
+      width: auto !important;
+      max-width: 90% !important;
+      margin: 0.5rem !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      font-size: 12px;
+    }
+
+    .swal2-content {
+      width: 100% !important;
+      max-width: 300px !important;
+    }
+
+    .swal2-input {
+      width: 100% !important;
+      max-width: 280px !important;
+      margin: 0.5rem auto !important;
+      font-size: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .swal2-popup {
+        width: 95% !important;
+        font-size: 12px !important;
+      }
+      
+      .swal2-input {
+        font-size: 12px !important;
+        padding: 0.5rem !important;
+      }
+      
+      .full-history-item > div {
+        min-width: 100%;
+      }
+      
+      .history-actions {
+        flex-direction: column;
+        gap: 5px;
+      }
+    }
+
+    .swal2-input-group {
+      padding: 0 15px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    h4 {
+      font-size: 1.2rem;
+    }
+    
+    .nav-link {
+      font-size: 12px;
+      padding: 8px 12px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .form-control, .form-control-sm {
+      font-size: 12px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .btn {
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    small, .small {
+      font-size: 10px;
+    }
+    
+    .text-muted {
+      font-size: 10px;
+    }
+    
+    .status-container {
+      display: flex;
+      gap: 5px;
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+    
+    .status-box {
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 9.5px;
+      font-weight: bold;
+    }
+    
+    .active-status {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .inactive-status {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .stock-status {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .no-stock-status {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .search-history {
+      margin-bottom: 10px;
+    }
+    
+    /* Estilos para el módulo de configuraciones */
+    .config-option {
+      margin-bottom: 15px;
+    }
+    .config-option label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    /* Estilo para el icono de configuración */
+    .nav-link i.fa-cog {
+      font-size: 1.1rem;
+    }
+    
+    /* Estilos para los botones de acción en historial */
+    .history-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .history-actions .btn {
+      padding: 5px 10px;
+    }
+    
+    /* Loading spinner */
+    .spinner-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.1);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .spinner-border {
+      width: 3rem;
+      height: 3rem;
+    }
+    
+    /* Estilo para código desconocido */
+    .unknown-code {
+      color: #dc3545;
+      font-size: 10px;
+      margin-top: 2px;
+      display: none;
+    }
+    
+    /* Estilo para el botón deshabilitado */
+    .btn-success:disabled {
+      opacity: 0.65;
+    }
+    
+    /* Estilo para el campo de búsqueda con foco */
+    #search:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    /* Nuevos estilos para el historial */
+    .history-header {
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+      padding-bottom: 3px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .history-code {
+      color: #6c757d;
+      font-size: 0.75rem;
+    }
+    
+    .history-name {
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* Estilo para la advertencia de duplicados */
+    .duplicate-warning {
+      animation: pulse 2s infinite;
+      border-left: 4px solid #ffc107;
+      background-color: #fff8e1;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    /* Estilos para el historial mejorado */
+.history-item {
+  transition: all 0.3s ease;
+}
+
+.history-item:hover {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Animación para la alerta de duplicados */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.animated.pulse {
+  animation: pulse 1s infinite;
+}
+
+/* Estilos para la tabla de duplicados */
+.swal2-popup .table {
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.swal2-popup .table th {
+  background-color: #f8f9fa;
+}
+
+/* Mejora para los badges */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.5em;
+}
+
+  </style>
+</head>
+<body>
+
+<div id="mainContent">
+  <!-- Loading spinner -->
+  <div id="spinner" class="spinner-container">
+    <div class="spinner-border text-primary" role="status">
+      <span class="sr-only">Cargando...</span>
+    </div>
+  </div>
+
+  <!-- Modal para escáner -->
+  <div class="modal fade" id="scannerModal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" style="font-size: 14px;">Escanear código</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body text-center">
+                  <div id="qr-reader" style="width: 100%;"></div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal" style="font-size: 12px;">Cerrar</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="container-fluid">
+      <h4 class="mb-3 text-center">Control de Inventarios</h4>
+      
+      <ul class="nav nav-tabs mb-2">
+          <li class="nav-item">
+              <a class="nav-link active" onclick="checkPermission(() => showModule('import', event))">
+                  <i class="fas fa-file-import mr-1"></i> Importar
+              </a>
+          </li>
+          <li class="nav-item">
+              <a class="nav-link" onclick="checkPermission(() => showModule('conteo', event))">
+                  <i class="fas fa-clipboard-list mr-1"></i> Registrar
+              </a>
+          </li>
+          <li class="nav-item">
+              <a class="nav-link" onclick="checkPermission(() => showModule('historial', event))">
+                  <i class="fas fa-history mr-1"></i> Historial
+              </a>
+          </li>
+          <li class="nav-item">
+              <a class="nav-link" onclick="checkPermission(() => showModule('configuraciones', event))" title="Configuraciones">
+                  <i class="fas fa-cog"></i>
+              </a>
+          </li>
+      </ul>
+
+      <div id="importModule" class="module-section active">
+          <div class="compact-card card">
+              <div class="card-body p-2">
+                  <input type="file" id="excelFile" class="form-control form-control-sm" accept=".xlsx, .xls">
+              </div>
+          </div>
+      </div>
+
+      <div id="conteoModule" class="module-section">
+          <div class="compact-card card">
+              <div class="card-body p-2">
+                  <div style="position: relative;">
+                    <div class="input-group mb-2">
+                        <input type="text" id="search" class="form-control form-control-sm" placeholder="Buscar producto..." disabled>
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary btn-sm" type="button" id="scanButton" title="Escanear código">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="suggestions" class="suggestions" style="display:none;"></div>
+                    <div id="unknownCode" class="unknown-code">Código desconocido</div>
+                  </div>
+
+                  <div id="product-info" class="mb-2" style="display:none;">
+                      <small class="text-muted d-block">Código: <span id="product-code"></span></small>
+                      <small class="text-muted d-block">Nombre: <span id="product-name"></span></small>
+                      <div class="status-container">
+                          <span id="product-status" class="status-box"></span>
+                          <span id="product-stock" class="status-box"></span>
+                      </div>
+                  </div>
+
+                  <div class="state-dropdown">
+                      <select id="state">
+                          <option value="Buen estado" selected>Buen estado</option>
+                          <option value="Vencido">Vencido</option>
+                          <option value="Roto">Roto</option>
+                          <option value="Incompleto">Incompleto</option>
+                          <option value="Otros">Otros</option>
+                      </select>
+                  </div>
+
+                  <form id="countForm" class="compact-form">
+                      <div class="row">
+                          <div class="col-6">
+                              <input type="number" id="quantity" class="form-control form-control-sm" placeholder="Cantidad" min="0" required>
+                          </div>
+                          <div class="col-6">
+                              <input type="text" id="location" class="form-control form-control-sm" placeholder="Ubicación">
+                          </div>
+                      </div>
+                      
+                      <textarea id="notes" class="form-control form-control-sm mt-1" rows="2" placeholder="Notas"></textarea>
+                      
+                      <div class="row mt-2">
+                          <div class="col-6">
+                              <button type="button" id="saveBtn" class="btn btn-success btn-sm btn-block" onclick="checkPermission(saveCount)" disabled>Guardar</button>
+                          </div>
+                          <div class="col-6">
+                              <button type="button" class="btn btn-secondary btn-sm btn-block" onclick="clearForm()">Cancelar</button>
+                          </div>
+                      </div>
+                  </form>
+
+                  <div id="history-list" class="mt-3"></div>
+              </div>
+          </div>
+      </div>
+      
+      <div id="historialModule" class="module-section">
+          <div class="compact-card card">
+              <div class="card-body p-2">
+                  <div class="history-actions">
+                      <button class="btn btn-outline-info btn-sm" onclick="checkPermission(downloadHistory)">
+                          <i class="fas fa-download"></i> Descargar
+                      </button>
+                      <button class="btn btn-outline-danger btn-sm" onclick="checkPermission(deleteHistory)">
+                          <i class="fas fa-trash"></i> Borrar
+                      </button>
+                  </div>
+                  <div class="search-history">
+                      <input type="text" id="searchHistory" class="form-control form-control-sm" placeholder="Buscar en historial..." oninput="filterHistory()">
+                  </div>
+                  <div id="full-history-list"></div>
+              </div>
+          </div>
+      </div>
+      
+      <div id="configuracionesModule" class="module-section">
+          <div class="compact-card card">
+              <div class="card-body p-2">
+                  <h5 class="card-title">Configuración de Ubicación</h5>
+                  <div class="config-option">
+                      <label>Estado del campo Ubicación:</label>
+                      <button type="button" id="toggleLocationBtn" class="btn btn-warning btn-sm btn-block" onclick="toggleLocationField()">
+                          <i class="fas fa-lock"></i> <span id="locationBtnText">Deshabilitar Ubicación</span>
+                      </button>
+                      <small class="text-muted">Requiere contraseña</small>
+                  </div>
+                  <hr>
+                  <h5 class="card-title">Modo Registro Continuo</h5>
+                  <div class="config-option">
+                      <label>Estado del Modo Registro Continuo:</label>
+                      <button type="button" id="toggleContinuousModeBtn" class="btn btn-warning btn-sm btn-block" onclick="toggleContinuousMode()">
+                          <i class="fas fa-lock"></i> <span id="continuousModeBtnText">Deshabilitar Modo Continuo</span>
+                      </button>
+                      <small class="text-muted">Requiere contraseña</small>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Pie de página -->
+  <div class="footer">
+      Desarrollado por: © 2025 Miguel Fajardo - Analista de Inventarios
+  </div>
+</div>
+
+<script>
+// Constantes del sistema
+const SPECIAL_CASE_CODE = '1010101010101';
+const OTHER_STATE = 'Otros';
+const CONFIG_PASSWORD = '9999';
+const DELETE_PASSWORD = '0000';
+const LICENSE_EXPIRATION = '2026-02-28T23:59:00';
+const SUCCESS_MESSAGE_TIMEOUT = 1500; // 1.5 segundos
+
+// Sistema de Autenticación
+const validUsers = {
+  'Admin': { password: 'Admin2025*', isAdmin: true },
+  'conteo': { password: '123456', isAdmin: false }
+};
+
+const checkLicense = () => new Date() <= new Date(LICENSE_EXPIRATION);
+
+// Mostrar spinner de carga
+function showSpinner() {
+  document.getElementById('spinner').style.display = 'flex';
+}
+
+// Ocultar spinner de carga
+function hideSpinner() {
+  document.getElementById('spinner').style.display = 'none';
+}
+
+async function authenticateUser() {
+  const { value: credentials } = await Swal.fire({
+    title: 'Inicio de sesión',
+    html: 
+      `<div class="swal2-input-group">
+        <input id="username" class="swal2-input" placeholder="Usuario">
+        <input id="password" type="password" class="swal2-input" placeholder="Contraseña">
+      </div>`,
+    footer: '© 2025 Miguel Fajardo - Analista de Inventarios',
+    focusConfirm: false,
+    preConfirm: () => ({
+      username: document.getElementById('username').value,
+      password: document.getElementById('password').value
+    }),
+    customClass: {
+      container: 'swal2-center-container',
+      popup: 'swal2-center-popup'
+    }
+  });
+
+  if (!credentials) return false;
+
+  const user = validUsers[credentials.username];
+  if (user && user.password === credentials.password) {
+    if (credentials.username === 'conteo' && !checkLicense()) {
+      await Swal.fire('Licencia vencida', 'Contacte al administrador', 'error');
+      return false;
+    }
+    sessionStorage.setItem('authUser', credentials.username);
+    return true;
+  }
+  Swal.fire('Error', 'Credenciales inválidas', 'error');
+  return false;
+}
+
+// Inicialización
+(async () => {
+  let authUser = sessionStorage.getItem('authUser');
+  
+  if (!authUser && !(await authenticateUser())) {
+    document.body.innerHTML = '<h1 class="text-center mt-5">Acceso no autorizado</h1>';
+    return;
+  }
+  
+  if (authUser === 'conteo' && !checkLicense()) {
+    await Swal.fire('Licencia vencida', 'Contacte al administrador', 'error');
+    sessionStorage.removeItem('authUser');
+    window.location.reload();
+    return;
+  }
+  
+  document.getElementById('mainContent').style.display = 'block';
+  if (localStorage.getItem('inventoryProducts')) {
+    $('#search').prop('disabled', false);
+  }
+  loadFullHistory();
+  
+  // Verificar estado inicial del campo de ubicación
+  checkLocationFieldState();
+})();
+
+// Sistema de permisos
+function checkPermission(callback) {
+  const user = sessionStorage.getItem('authUser');
+  if (user === 'conteo' && !checkLicense()) {
+    Swal.fire('Licencia vencida', 'Contacte al administrador', 'error');
+    return;
+  }
+  callback();
+}
+
+// Variables globales
+let products = JSON.parse(localStorage.getItem('inventoryProducts')) || [];
+let counts = JSON.parse(localStorage.getItem('inventoryCounts')) || [];
+let currentEditIndex = -1;
+let html5QrCode = null;
+const MAX_SUGGESTIONS = 10;
+let cameraPermissionGranted = false;
+
+// Función para verificar el estado del campo de ubicación al cargar la página
+function checkLocationFieldState() {
+  const isDisabled = localStorage.getItem('ubicacionDeshabilitada') === 'true';
+  const locationField = document.getElementById('location');
+  const toggleBtn = document.getElementById('toggleLocationBtn');
+  const btnText = document.getElementById('locationBtnText');
+  
+  if (isDisabled) {
+    locationField.disabled = true;
+    locationField.placeholder = 'Ubicación (deshabilitada)';
+    toggleBtn.classList.remove('btn-warning');
+    toggleBtn.classList.add('btn-success');
+    btnText.textContent = 'Habilitar Ubicación';
+  } else {
+    locationField.disabled = false;
+    locationField.placeholder = 'Ubicación';
+    toggleBtn.classList.remove('btn-success');
+    toggleBtn.classList.add('btn-warning');
+    btnText.textContent = 'Deshabilitar Ubicación';
+  }
+}
+
+// Función para alternar el estado del campo de ubicación
+function toggleLocationField() {
+  Swal.fire({
+    title: 'Ingrese la contraseña',
+    input: 'password',
+    inputAttributes: { autocapitalize: 'off' },
+    showCancelButton: true,
+    confirmButtonText: 'Aceptar',
+    cancelButtonText: 'Cancelar',
+    preConfirm: (password) => {
+      if (password !== CONFIG_PASSWORD) {
+        Swal.showValidationMessage('Contraseña incorrecta');
+      }
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const locationField = document.getElementById('location');
+      const toggleBtn = document.getElementById('toggleLocationBtn');
+      const btnText = document.getElementById('locationBtnText');
+      const isDisabled = locationField.disabled;
+      
+      // Cambiar estado del campo
+      locationField.disabled = !isDisabled;
+      
+      // Actualizar estado en localStorage
+      localStorage.setItem('ubicacionDeshabilitada', !isDisabled);
+      
+      // Cambiar apariencia del botón
+      if (isDisabled) {
+        locationField.placeholder = 'Ubicación';
+        toggleBtn.classList.remove('btn-success');
+        toggleBtn.classList.add('btn-warning');
+        btnText.textContent = 'Deshabilitar Ubicación';
+      } else {
+        locationField.placeholder = 'Ubicación (deshabilitada)';
+        toggleBtn.classList.remove('btn-warning');
+        toggleBtn.classList.add('btn-success');
+        btnText.textContent = 'Habilitar Ubicación';
+      }
+      
+      Swal.fire(
+        'Éxito',
+        isDisabled ? 'Ubicación habilitada' : 'Ubicación deshabilitada',
+        'success'
+      );
+    }
+  });
+}
+
+// Función para alternar el estado del Modo Registro Continuo
+function toggleContinuousMode() {
+  Swal.fire({
+    title: 'Ingrese la contraseña',
+    input: 'password',
+    inputAttributes: { autocapitalize: 'off' },
+    showCancelButton: true,
+    confirmButtonText: 'Aceptar',
+    cancelButtonText: 'Cancelar',
+    preConfirm: (password) => {
+      if (password !== CONFIG_PASSWORD) {
+        Swal.showValidationMessage('Contraseña incorrecta');
+      }
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const isContinuousModeEnabled = localStorage.getItem('registroContinuoHabilitado') === 'true';
+      localStorage.setItem('registroContinuoHabilitado', !isContinuousModeEnabled);
+      updateContinuousModeUI(!isContinuousModeEnabled);
+      Swal.fire(
+        'Éxito',
+        !isContinuousModeEnabled ? 'Modo Registro Continuo habilitado' : 'Modo Registro Continuo deshabilitado',
+        'success'
+      );
+    }
+  });
+}
+
+// Actualizar la interfaz del botón de Modo Registro Continuo
+function updateContinuousModeUI(isEnabled) {
+  const toggleBtn = document.getElementById('toggleContinuousModeBtn');
+  const btnText = document.getElementById('continuousModeBtnText');
+  if (isEnabled) {
+    toggleBtn.classList.remove('btn-warning');
+    toggleBtn.classList.add('btn-success');
+    btnText.textContent = 'Habilitar Modo Continuo';
+  } else {
+    toggleBtn.classList.remove('btn-success');
+    toggleBtn.classList.add('btn-warning');
+    btnText.textContent = 'Deshabilitar Modo Continuo';
+  }
+}
+
+// Inicializar el estado del Modo Registro Continuo
+document.addEventListener('DOMContentLoaded', () => {
+  const isContinuousModeEnabled = localStorage.getItem('registroContinuoHabilitado') === 'true';
+  updateContinuousModeUI(isContinuousModeEnabled);
+});
+
+// Funciones del sistema de inventario
+function showModule(moduleId, event) {
+  document.querySelectorAll('.module-section').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById(moduleId + 'Module').classList.add('active');
+  event.target.classList.add('active');
+  
+  if (moduleId === 'historial') {
+    loadFullHistory();
+  } else if (moduleId === 'conteo') {
+    // Poner foco en el campo de búsqueda al mostrar el módulo de conteo
+    setTimeout(() => {
+      document.getElementById('search').focus();
+    }, 100);
+  }
+}
+
+function loadFullHistory() {
+  const historyList = document.getElementById('full-history-list');
+  historyList.innerHTML = '';
+  
+  if (counts.length === 0) {
+    historyList.innerHTML = '<p class="text-muted text-center">No hay registros en el historial</p>';
+    return;
+  }
+  
+  // Ordenar por fecha más reciente primero
+  const sortedHistory = [...counts].sort((a, b) => 
+    new Date(b.timestamp) - new Date(a.timestamp));
+  
+  sortedHistory.forEach((count) => {
+    const item = document.createElement('div');
+    item.className = 'full-history-item';
+    item.innerHTML = 
+      `<div><strong>Código:</strong> ${count.productCode}</div>
+      <div><strong>Nombre:</strong> ${count.productName}</div>
+      <div><strong>Cantidad:</strong> ${count.quantity}</div>
+      <div><strong>Ubicación:</strong> ${count.location}</div>
+      <div><strong>Fecha:</strong> ${new Date(count.timestamp).toLocaleString('es-PE')}</div>`;
+    historyList.appendChild(item);
+  });
+}
+
+function filterHistory() {
+  const query = document.getElementById('searchHistory').value.trim().toLowerCase();
+  const historyItems = document.querySelectorAll('.full-history-item');
+  
+  historyItems.forEach(item => {
+    const text = item.textContent.toLowerCase();
+    if (text.includes(query)) {
+      item.style.display = 'flex';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+
+// Función para procesar múltiples códigos de barras al importar productos
+document.getElementById('excelFile').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  showSpinner();
+
+  readXlsxFile(file).then((rows) => {
+    products = rows.slice(1).map(row => {
+      const barcodes = row[0]?.toString().trim() || ''; // Códigos de barras
+      const barcodeArray = barcodes.split('|').map(b => b.trim()); // Separar por "|"
+      return {
+        barcodes: barcodeArray, // Guardar como array
+        code: row[1]?.toString().trim() || '',
+        name: row[2]?.toString().trim() || 'Sin nombre',
+        measure: row[3]?.toString().trim() || 'UND',
+        status: parseInt(row[4]) || 0,
+        stock: parseInt(row[5]) || 0
+      };
+    }).filter(p => p.code);
+
+    localStorage.setItem('inventoryProducts', JSON.stringify(products));
+    $('#search').prop('disabled', false);
+    hideSpinner();
+    Swal.fire({
+      title: 'Éxito',
+      text: `Se importaron ${products.length} productos`,
+      icon: 'success',
+      confirmButtonText: 'Aceptar'
+    }).then(() => {
+      $('#search').focus();
+      showModule('conteo', { target: document.querySelector("a.nav-link:not(.active)") });
+    });
+  }).catch(error => {
+    hideSpinner();
+    Swal.fire('Error', 'Error al importar el archivo', 'error');
+    console.error('Error:', error);
+  });
+});
+
+// Función para buscar productos por código de barras o código de producto
+function filterProducts() {
+  const query = document.getElementById('search').value.trim().toLowerCase();
+  const suggestionsDiv = document.getElementById('suggestions');
+  const unknownCodeDiv = document.getElementById('unknownCode');
+  const saveBtn = document.getElementById('saveBtn');
+  suggestionsDiv.innerHTML = '';
+
+  if (!query) {
+    suggestionsDiv.style.display = 'none';
+    document.getElementById('product-info').style.display = 'none';
+    unknownCodeDiv.style.display = 'none';
+    saveBtn.disabled = true;
+    return;
+  }
+
+  const results = products.filter(p =>
+    p.barcodes.some(barcode => barcode.toLowerCase().includes(query)) || // Buscar en códigos de barras
+    p.code.toLowerCase().includes(query) ||
+    p.name.toLowerCase().includes(query)
+  ).slice(0, MAX_SUGGESTIONS);
+
+  if (results.length === 0) {
+    suggestionsDiv.innerHTML = '<div class="suggestion-item text-muted">Producto no encontrado</div>';
+    suggestionsDiv.style.display = 'block';
+    unknownCodeDiv.style.display = 'block';
+    saveBtn.disabled = true;
+    return;
+  }
+
+  results.forEach(product => {
+    const div = document.createElement('div');
+    div.className = 'suggestion-item';
+    div.textContent = `${product.code} - ${product.name}`;
+    div.onclick = () => selectProduct(product);
+    suggestionsDiv.appendChild(div);
+  });
+  suggestionsDiv.style.display = 'block';
+  unknownCodeDiv.style.display = 'none';
+}
+
+// Función para seleccionar un producto
+function selectProduct(product) {
+  if (!product || product.name === 'Producto no encontrado') {
+    document.getElementById('product-info').style.display = 'none';
+    document.getElementById('saveBtn').disabled = true;
+    Swal.fire('Error', 'El producto no está en la lista', 'error');
+    return;
+  }
+
+  document.getElementById('search').value = product.code;
+  document.getElementById('product-code').textContent = product.code;
+  document.getElementById('product-name').textContent = product.name;
+
+  const statusBox = document.getElementById('product-status');
+  const stockBox = document.getElementById('product-stock');
+
+  if (product.status === 1) {
+    statusBox.textContent = 'ACTIVO';
+    statusBox.className = 'status-box active-status';
+  } else {
+    statusBox.textContent = 'INACTIVO';
+    statusBox.className = 'status-box inactive-status';
+  }
+
+  if (product.stock === 1) {
+    stockBox.textContent = 'CON STOCK';
+    stockBox.className = 'status-box stock-status';
+  } else {
+    stockBox.textContent = 'SIN STOCK';
+    stockBox.className = 'status-box no-stock-status';
+  }
+
+  document.getElementById('product-info').style.display = 'block';
+  document.getElementById('suggestions').innerHTML = '';
+  document.getElementById('suggestions').style.display = 'none';
+  document.getElementById('unknownCode').style.display = 'none';
+  document.getElementById('saveBtn').disabled = false;
+
+  // Saltar al campo de cantidad después de seleccionar producto
+  setTimeout(() => {
+    document.getElementById('quantity').focus();
+  }, 100);
+
+  loadHistory(product.code);
+}
+
+// Función para mostrar advertencia de duplicados
+function showDuplicateWarning(duplicates, onConfirm, onCancel) {
+  const duplicatesHTML = duplicates.map(c => `
+    <tr>
+      <td>${c.quantity}</td>
+      <td>${c.location}</td>
+      <td>${new Date(c.timestamp).toLocaleString()}</td>
+    </tr>
+  `).join('');
+
+  const modalHTML = `
+    <div class="modal fade" id="duplicateWarningModal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-white">
+            <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i> Advertencia de Duplicados</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>Se han detectado conteos recientes para este producto:</p>
+            <div style="max-height: 200px; overflow-y: auto;">
+              <table class="table table-sm table-bordered">
+                <thead>
+                  <tr>
+                    <th>Cantidad</th>
+                    <th>Ubicación</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${duplicatesHTML}
+                </tbody>
+              </table>
+            </div>
+            <p class="text-danger font-weight-bold">¿Deseas crear un nuevo registro independiente?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" id="confirmDuplicateBtn"><i class="fas fa-plus"></i> Crear nuevo registro</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Agregar el modal al DOM
+  const modalContainer = document.createElement('div');
+  modalContainer.innerHTML = modalHTML;
+  document.body.appendChild(modalContainer);
+
+  // Mostrar el modal
+  $('#duplicateWarningModal').modal('show');
+
+  // Manejar el botón de confirmación
+  document.getElementById('confirmDuplicateBtn').addEventListener('click', () => {
+    $('#duplicateWarningModal').modal('hide');
+    onConfirm();
+  });
+
+  // Manejar el cierre del modal
+  $('#duplicateWarningModal').on('hidden.bs.modal', () => {
+    modalContainer.remove();
+    if (onCancel) onCancel();
+  });
+}
+
+// Ajuste en la función saveCount para usar el nuevo modal
+function saveCount() {
+  const productCode = document.getElementById('product-code').textContent;
+  const quantity = parseInt(document.getElementById('quantity').value);
+  const location = document.getElementById('location').value;
+  const notes = document.getElementById('notes').value;
+  const state = document.getElementById('state').value;
+  const productInfo = document.getElementById('product-info');
+  const isLocationDisabled = localStorage.getItem('ubicacionDeshabilitada') === 'true';
+
+  // Validaciones básicas
+  if (!productCode || productInfo.style.display === 'none') {
+    Swal.fire('Error', 'Seleccione un producto válido', 'error');
+    return;
+  }
+
+  if (isNaN(quantity) || quantity < 0) {
+    Swal.fire('Error', 'Ingrese una cantidad válida (número positivo)', 'error');
+    return;
+  }
+
+  if (!isLocationDisabled && !location) {
+    Swal.fire('Error', 'Complete el campo de ubicación', 'error');
+    return;
+  }
+
+  const productExists = products.some(p => p.code === productCode);
+  if (!productExists) {
+    Swal.fire('Error', 'El producto no está en la lista importada', 'error');
+    return;
+  }
+
+  if ((state === OTHER_STATE || productCode === SPECIAL_CASE_CODE) && !notes) {
+    Swal.fire('Error', 'El campo de notas es obligatorio', 'error');
+    return;
+  }
+
+  // Verificar duplicados en últimas 24 horas
+  const now = new Date();
+  const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+  const duplicateCounts = counts.filter(c =>
+    c.productCode === productCode &&
+    new Date(c.timestamp) > twentyFourHoursAgo
+  );
+
+  if (duplicateCounts.length > 0 && currentEditIndex === -1) {
+    showDuplicateWarning(duplicateCounts, () => {
+      proceedWithSave(productCode, quantity, location, notes, state, isLocationDisabled);
+    }, () => {
+      clearForm();
+      document.getElementById('search').focus();
+    });
+  } else {
+    // Si no hay duplicados, guardar normalmente
+    proceedWithSave(productCode, quantity, location, notes, state, isLocationDisabled);
+  }
+}
+
+function proceedWithSave(productCode, quantity, location, notes, state, isLocationDisabled, isAccumulated = false, accumulatedQuantity = null) {
+  const product = products.find(p => p.code === productCode);
+  const count = {
+    productCode,
+    productName: product.name,
+    productMeasure: product.measure,
+    quantity: isAccumulated ? accumulatedQuantity : quantity,
+    location: isLocationDisabled ? 'N/A' : location,
+    notes,
+    state,
+    timestamp: new Date().toISOString()
+  };
+
+  if (currentEditIndex > -1) {
+    counts[currentEditIndex] = count;
+    currentEditIndex = -1;
+  } else if (isAccumulated) {
+    // Eliminar los duplicados y agregar el nuevo conteo acumulado
+    counts = counts.filter(c => 
+      c.productCode !== productCode || 
+      new Date(c.timestamp) <= new Date(new Date().getTime() - (24 * 60 * 60 * 1000))
+    );
+    counts.push(count);
+  } else {
+    counts.push(count);
+  }
+  
+  localStorage.setItem('inventoryCounts', JSON.stringify(counts));
+  loadHistory(productCode);
+  loadFullHistory();
+  
+  // Mostrar mensaje de éxito con timeout
+  const successAlert = Swal.fire({
+    title: 'Éxito',
+    text: 'Conteo guardado correctamente',
+    icon: 'success',
+    confirmButtonText: 'OK',
+    timer: SUCCESS_MESSAGE_TIMEOUT,
+    timerProgressBar: true,
+    willClose: () => {
+      // Redirigir al campo de búsqueda después de cerrar
+      document.getElementById('search').focus();
+    }
+  });
+  
+  // Configurar timeout para cerrar automáticamente y redirigir
+  setTimeout(() => {
+    if (successAlert.isVisible()) {
+      successAlert.close();
+    }
+  }, SUCCESS_MESSAGE_TIMEOUT);
+  
+  // Limpiar formulario y redirigir foco
+  clearForm();
+  document.getElementById('search').focus();
+}
+
+function loadHistory(productCode) {
+  const history = counts
+    .map((count, index) => ({ ...count, originalIndex: index }))
+    .filter(c => c.productCode === productCode)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Ordenar por fecha descendente
+
+  const historyList = document.getElementById('history-list');
+  historyList.innerHTML = '';
+  
+  // Obtener información del producto
+  const product = products.find(p => p.code === productCode);
+  
+  // Crear encabezado con nombre y código del producto
+  if (product) {
+    const header = document.createElement('div');
+    header.className = 'bg-light p-2 mb-2 rounded';
+    header.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="font-weight: bold; font-size: 0.9rem;">${product.name}</span>
+          <span class="badge badge-secondary ml-2" style="font-size: 0.7rem;">${product.code}</span>
+        </div>
+        <span class="badge badge-info" style="font-size: 0.7rem;">
+          ${history.length} ${history.length === 1 ? 'registro' : 'registros'}
+        </span>
+      </div>
+    `;
+    historyList.appendChild(header);
+  }
+  
+  // Mostrar cada registro de historial
+  history.forEach((c) => {
+    const item = document.createElement('div');
+    item.className = 'history-item mb-2 p-2 border rounded';
+    
+    // Resaltar si es un registro reciente (<24 horas)
+    const isRecent = (new Date() - new Date(c.timestamp)) < (24 * 60 * 60 * 1000);
+    if (isRecent) {
+      item.classList.add('border-warning');
+      item.style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
+    }
+    
+    item.innerHTML = `
+      <div style="display: flex; justify-content: space-between;">
+        <div>
+          <span class="badge badge-primary">${c.quantity} ${c.productMeasure}</span>
+          <span class="badge badge-secondary ml-1">${c.state}</span>
+        </div>
+        <small class="text-muted">${new Date(c.timestamp).toLocaleString()}</small>
+      </div>
+      <div class="mt-1">
+        <small><strong>Ubicación:</strong> ${c.location}</small>
+      </div>
+      ${c.notes ? `<div class="mt-1"><small><strong>Notas:</strong> ${c.notes}</small></div>` : ''}
+      <div class="text-right mt-1">
+        <button class="btn btn-sm btn-outline-primary" onclick="editCount('${c.productCode}', ${c.originalIndex})">
+          <i class="fas fa-edit"></i> Editar
+        </button>
+      </div>
+    `;
+    historyList.appendChild(item);
+  });
+  
+  // Mostrar mensaje si no hay historial
+  if (history.length === 0) {
+    historyList.innerHTML = `
+      <div class="text-center text-muted p-3">
+        <i class="fas fa-history fa-2x mb-2"></i>
+        <p>No hay registros previos para este producto</p>
+      </div>
+    `;
+  }
+}
+
+function editCount(productCode, index) {
+  proceedEdit(index);
+}
+
+function proceedEdit(index) {
+  if (index < 0 || index >= counts.length) return;
+  const count = counts[index];
+  currentEditIndex = index;
+  document.getElementById('quantity').value = count.quantity;
+  document.getElementById('location').value = count.location;
+  document.getElementById('notes').value = count.notes;
+  document.getElementById('state').value = count.state;
+}
+
+function clearForm() {
+  document.getElementById('quantity').value = '';
+  document.getElementById('location').value = '';
+  document.getElementById('notes').value = '';
+  document.getElementById('state').value = 'Buen estado';
+  currentEditIndex = -1;
+  document.getElementById('search').value = '';
+  document.getElementById('product-info').style.display = 'none';
+  document.getElementById('suggestions').innerHTML = '';
+  document.getElementById('suggestions').style.display = 'none';
+  document.getElementById('unknownCode').style.display = 'none';
+  document.getElementById('saveBtn').disabled = true;
+  // Enfocar el campo de búsqueda
+  document.getElementById('search').focus();
+}
+
+function downloadHistory() {
+  if (counts.length === 0) {
+    Swal.fire('Advertencia', 'No hay conteos para descargar', 'warning');
+    return;
+  }
+
+  Swal.fire({
+    title: 'Ingrese su nombre y apellidos',
+    html: 
+      `<div class="swal2-input-group">
+        <input id="userName" class="swal2-input" placeholder="Nombre">
+        <input id="userLastName" class="swal2-input" placeholder="Apellidos">
+      </div>`,
+    focusConfirm: false,
+    preConfirm: () => {
+      const userName = document.getElementById('userName').value.trim();
+      const userLastName = document.getElementById('userLastName').value.trim();
+      if (!userName || !userLastName) {
+        Swal.showValidationMessage('Complete ambos campos');
+      }
+      return { userName, userLastName };
+    },
+    customClass: {
+      container: 'swal2-center-container',
+      popup: 'swal2-center-popup'
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      showSpinner();
+      setTimeout(() => {
+        const { userName, userLastName } = result.value;
+        const now = new Date();
+        const formattedDate = now.toLocaleString('es-PE', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }).replace(/[/:,]/g, '-').replace(/\s/g, '_');
+
+        const fileName = `${userName}_${userLastName}_${formattedDate}.xlsx`;
+        const worksheetData = counts.map(count => ({
+          'Código': count.productCode,
+          'Nombre': count.productName,
+          'Unidad de Medida': count.productMeasure,
+          'Cantidad': count.quantity,
+          'Ubicación': count.location,
+          'Estado': count.state,
+          'Notas': count.notes || '',
+          'Fecha': new Date(count.timestamp).toLocaleString('es-PE')
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Historial');
+        XLSX.writeFile(workbook, fileName);
+        hideSpinner();
+      }, 500);
+    }
+  });
+}
+
+function deleteHistory() {
+  Swal.fire({
+    title: 'Ingrese la clave',
+    input: 'password',
+    inputAttributes: { autocapitalize: 'off' },
+    showCancelButton: true,
+    confirmButtonText: 'Borrar',
+    cancelButtonText: 'Cancelar',
+    preConfirm: (clave) => {
+      if (clave !== DELETE_PASSWORD) {
+        Swal.showValidationMessage('Clave incorrecta');
+      }
+    },
+    customClass: {
+      container: 'swal2-center-container',
+      popup: 'swal2-center-popup'
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      counts = [];
+      localStorage.removeItem('inventoryCounts');
+      Swal.fire('Éxito', 'Todos los conteos han sido borrados', 'success');
+      const prodCode = document.getElementById('product-code').textContent;
+      if (prodCode) loadHistory(prodCode);
+      loadFullHistory();
+    }
+  });
+}
+
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+document.getElementById('search').addEventListener('input', debounce(filterProducts, 300));
+
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('search').contains(e.target)) {
+    document.getElementById('suggestions').style.display = 'none';
+  }
+});
+
+$(document).ready(() => {
+  if (products.length > 0) {
+    $('#search').prop('disabled', false);
+  }
+
+  document.getElementById('scanButton').addEventListener('click', async function () {
+    const isContinuousModeEnabled = localStorage.getItem('registroContinuoHabilitado') === 'true';
+    if (isContinuousModeEnabled) {
+      // Escanear en Modo Registro Continuo
+      $('#scannerModal').modal('show');
+      $('#scannerModal').on('shown.bs.modal', function () {
+        const qrRegionId = "qr-reader";
+        if (!html5QrCode) {
+          html5QrCode = new Html5Qrcode(qrRegionId);
+        }
+        const config = { fps: 10, qrbox: 250 };
+        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+          handleContinuousModeScan(decodedText);
+          $('#scannerModal').modal('hide');
+        }).catch((error) => {
+          console.error('Error al iniciar el escáner:', error);
+          Swal.fire('Error', 'Error al iniciar el escáner', 'error');
+        });
+      });
+    } else {
+      // Escanear en modo normal
+      $('#scannerModal').modal('show');
+    }
+  });
+
+  $('#scannerModal').on('shown.bs.modal', function () {
+    const qrRegionId = "qr-reader";
+    if (!html5QrCode) {
+      html5QrCode = new Html5Qrcode(qrRegionId);
+    }
+    const config = { fps: 10, qrbox: 250 };
+    html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+      const product = products.find(p => p.barcodes.includes(decodedText) || p.code === decodedText);
+      if (!product) {
+        Swal.fire('Error', 'Producto no encontrado', 'error');
+      } else {
+        document.getElementById('search').value = product.code;
+        selectProduct(product);
+        // Saltar al campo de cantidad después de escanear
+        setTimeout(() => {
+          document.getElementById('quantity').focus();
+        }, 100);
+      }
+      $('#scannerModal').modal('hide');
+    }).catch((error) => {
+      console.error('Error al iniciar el escáner:', error);
+      Swal.fire('Error', 'Error al iniciar el escáner', 'error');
+    });
+  });
+
+  $('#scannerModal').on('hidden.bs.modal', function () {
+    if (html5QrCode) {
+      html5QrCode.stop().catch((error) => {
+        console.error('Error al detener el escáner:', error);
+      });
+    }
+  });
+});
+
+// Función para manejar el escaneo en Modo Registro Continuo
+function handleContinuousModeScan(productCode) {
+  const product = products.find(p => p.code === productCode || p.barcodes.includes(productCode));
+  if (!product) {
+    Swal.fire('Error', 'Producto no encontrado', 'error');
+    return;
+  }
+
+  // Buscar si ya existe un conteo para este producto en las últimas 24 horas
+  const now = new Date();
+  const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+  const existingCount = counts.find(c =>
+    c.productCode === product.code &&
+    new Date(c.timestamp) > twentyFourHoursAgo
+  );
+
+  if (existingCount) {
+    // Incrementar la cantidad del conteo existente
+    existingCount.quantity += 1;
+    existingCount.timestamp = now.toISOString();
+  } else {
+    // Crear un nuevo conteo
+    counts.push({
+      productCode: product.code,
+      productName: product.name,
+      productMeasure: product.measure,
+      quantity: 1,
+      location: 'N/A',
+      notes: '',
+      state: 'Buen estado',
+      timestamp: now.toISOString()
+    });
+  }
+
+  // Guardar los conteos en localStorage
+  localStorage.setItem('inventoryCounts', JSON.stringify(counts));
+
+  // Mostrar mensaje de éxito
+  Swal.fire({
+    title: 'Producto registrado',
+    text: `${product.name} - Cantidad: ${existingCount ? existingCount.quantity : 1}`,
+    icon: 'success',
+    timer: 1000,
+    showConfirmButton: false
+  });
+
+  // Actualizar el historial
+  loadHistory(product.code);
+  loadFullHistory();
+}
+</script>
+
+</body>
+</html>
