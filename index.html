@@ -492,6 +492,47 @@ input:checked + .slider:before {
   color: #b85c2b;
   border: 1px solid #f5c6cb;
 }
+
+/* Mejoras para la tabla en modo continuo */
+#temporaryListContainer {
+  overflow-x: auto;
+}
+
+#temporaryList {
+  width: 100%;
+  font-size: 12px;
+}
+
+#temporaryList th, #temporaryList td {
+  white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#temporaryList td {
+  word-wrap: break-word;
+}
+
+@media (max-width: 768px) {
+  #temporaryList td {
+    font-size: 10px;
+  }
+
+  #temporaryListContainer {
+    overflow-x: auto;
+  }
+
+  #temporaryList td:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  #temporaryList td:last-child button {
+    font-size: 10px;
+    padding: 3px 5px;
+  }
+}
   </style>
 </head>
 <body>
@@ -1007,6 +1048,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Sincronizar modo continuo
   const isContinuousModeEnabled = localStorage.getItem('registroContinuoHabilitado') === 'true';
   updateContinuousModeUI(isContinuousModeEnabled);
+});
+
+// Sincronizar el estado inicial del módulo de configuraciones
+document.addEventListener('DOMContentLoaded', () => {
+  // Estado inicial del campo de ubicación: Habilitado
+  localStorage.setItem('ubicacionDeshabilitada', false);
+  updateLocationFieldUI();
+
+  // Estado inicial del modo continuo: Inactivo
+  localStorage.setItem('registroContinuoHabilitado', false);
+  updateContinuousModeUI(false);
 });
 
 // Manejar búsqueda en modo continuo
