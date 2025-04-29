@@ -427,9 +427,8 @@
       padding: 6px 8px;
       background: #fff;
       font-size: 12px;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
+      /* Solo permite saltos de línea normales */
+      white-space: normal;
     }
     #temporaryListTable thead th {
       background: #e9ecef;
@@ -469,14 +468,41 @@
       #temporaryListTable th, #temporaryListTable td {
         font-size: 10px;
         padding: 4px 4px;
-        min-width: 60px;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
+        min-width: 40px;
+        white-space: normal;
+        word-break: break-word;
+        vertical-align: middle;
+        text-align: center;
       }
-      #temporaryListTable .codigo-col,
-      #temporaryListTable .nombre-col {
-        max-width: 120px;
+      #temporaryListTable .nombre-col,
+      #temporaryListTable .codigo-col {
+        max-width: 220px;
+        white-space: normal !important;
+        word-break: break-word;
+        overflow: visible;
+        text-overflow: unset;
+      }
+      #temporaryListTable .acciones-col {
+        min-width: 60px;
+        width: 70px;
+        position: sticky;
+        right: 0;
+        background: #fff;
+        z-index: 2;
+      }
+      #temporaryListTable .acciones-col .btn {
+        display: block;
+        width: 100%;
+        margin: 2px 0;
+        min-width: 32px;
+        font-size: 13px;
+        line-height: 1.2;
+        padding: 2px 8px;
+      }
+      #temporaryListTable .eststock-col .badge {
+        display: block;
+        margin-bottom: 2px;
+        width: 100%;
       }
     }
   </style>
