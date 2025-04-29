@@ -437,9 +437,9 @@
       font-weight: 600;
     }
     #temporaryListTable .codigo-col,
-    #temporaryListTable .nombre-col {
-      min-width: 80px;
-      max-width: 220px;
+    #temporaryListTable .nombre-col,
+    #temporaryListTable .cant-col {
+      font-size: 11px;
     }
     #temporaryListTable .acciones-col {
       min-width: 60px;
@@ -1872,6 +1872,24 @@ $(document).ready(() => {
       html5QrCode.stop().catch((error) => {
         console.error('Error al detener el escáner:', error);
       });
+    }
+  });
+
+  // Mostrar nombre completo al tocar/click en móviles y PC
+  document.getElementById('temporaryList').addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('nombre-col')) {
+      const nombreCompleto = e.target.getAttribute('title') || e.target.textContent;
+      // Usar SweetAlert si está disponible, si no, usar alert
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'Nombre completo',
+          text: nombreCompleto,
+          icon: 'info',
+          confirmButtonText: 'Cerrar'
+        });
+      } else {
+        alert(nombreCompleto);
+      }
     }
   });
 });
