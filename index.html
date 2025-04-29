@@ -617,6 +617,68 @@ input:checked + .slider:before {
     min-width: 38px;
   }
 }
+
+/* Solo el contenido de la columna nombre en la tabla temporal */
+#temporaryList td.nombre-col {
+  font-size: 8.5px !important;
+  max-width: 180px;
+  min-width: 80px;
+  width: 140px;
+  white-space: normal;
+  word-break: break-word;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 5; /* máximo 5 líneas */
+  -webkit-box-orient: vertical;
+  line-height: 1.15;
+}
+
+/* Encabezado de la columna nombre */
+#temporaryList th.nombre-col {
+  max-width: 180px;
+  min-width: 80px;
+  width: 140px;
+}
+
+/* Columna acciones más angosta */
+#temporaryList th.acciones-col,
+#temporaryList td.acciones-col {
+  min-width: 36px;
+  width: 38px;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+/* Botones de acción solo icono, más pequeños */
+#temporaryList td.acciones-col .btn {
+  font-size: 12px;
+  padding: 2px 4px;
+  min-width: 22px;
+  margin: 0 1px;
+  line-height: 1;
+}
+
+/* Ajuste para dispositivos pequeños */
+@media (max-width: 768px) {
+  #temporaryList th.nombre-col,
+  #temporaryList td.nombre-col {
+    max-width: 120px;
+    min-width: 60px;
+    width: 90px;
+    font-size: 8px !important;
+    -webkit-line-clamp: 5;
+  }
+  #temporaryList th.acciones-col,
+  #temporaryList td.acciones-col {
+    min-width: 28px;
+    width: 30px;
+  }
+  #temporaryList td.acciones-col .btn {
+    font-size: 11px;
+    padding: 2px 2px;
+    min-width: 18px;
+  }
+}
   </style>
 </head>
 <body>
@@ -1227,8 +1289,12 @@ function updateTemporaryListUI() {
         </span>
       </td>
       <td class="acciones-col">
-        <button class="btn btn-primary btn-xs" onclick="editTemporaryItem(${index})">Editar</button>
-        <button class="btn btn-danger btn-xs" onclick="removeTemporaryItem(${index})">Eliminar</button>
+        <button class="btn btn-primary btn-xs" title="Editar" onclick="editTemporaryItem(${index})">
+          <i class="fas fa-pen"></i>
+        </button>
+        <button class="btn btn-danger btn-xs" title="Eliminar" onclick="removeTemporaryItem(${index})">
+          <i class="fas fa-trash"></i>
+        </button>
       </td>
     `;
     listContainer.appendChild(row);
