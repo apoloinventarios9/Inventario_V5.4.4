@@ -879,84 +879,85 @@ input:checked + .slider:before {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
+  table-layout: auto;
 }
 
 #temporaryListTable th, #temporaryListTable td {
-  border: 1px solid #dee2e6;
-  vertical-align: middle;
-  text-align: center;
-  padding: 4px 6px;
-  background: transparent;
-  font-size: 12px;
+  border: 1px solid #dee2e6 !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+  padding: 6px 8px !important;
+  background: #fff !important;
+  font-size: 12px !important;
   white-space: nowrap;
 }
 
-/* Encabezados: centrados y fondo armonioso */
 #temporaryListTable thead th {
-  background: #f1f3f4;
-  color: #333;
-  text-align: center;
-  font-weight: 600;
+  background: #e9ecef !important;
+  color: #333 !important;
+  text-align: center !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid #bfc9d1 !important;
 }
 
-/* Código y nombre: mismo tamaño, alineación */
 #temporaryListTable .codigo-col,
 #temporaryListTable .nombre-col {
-  font-size: 12px;
-  min-width: 60px;
+  font-size: 12px !important;
+  min-width: 80px;
   max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-align: left;
-  padding-left: 8px;
+  text-align: center !important;
+  vertical-align: middle !important;
 }
 
-/* Cantidad y estado/stock: centrados */
 #temporaryListTable .cant-col,
 #temporaryListTable .eststock-col {
-  text-align: center;
+  text-align: center !important;
+  vertical-align: middle !important;
 }
 
-/* Acciones: centrado, sin recuadro extra */
 #temporaryListTable .acciones-col {
   min-width: 38px;
   width: 42px;
-  text-align: center;
+  text-align: center !important;
   padding-left: 2px;
   padding-right: 2px;
+  vertical-align: middle !important;
 }
 
 /* Botones de acción: colores y tamaño */
 #temporaryListTable .acciones-col .btn {
-  font-size: 13px;
-  padding: 2px 6px;
+  font-size: 13px !important;
+  padding: 2px 8px !important;
   min-width: 22px;
   margin: 0 1px;
   line-height: 1;
   box-shadow: none !important;
+  border: none !important;
 }
 
-/* Mantener colores de Bootstrap */
 #temporaryListTable .btn-primary {
   background-color: #007bff !important;
   border-color: #007bff !important;
   color: #fff !important;
 }
+
 #temporaryListTable .btn-danger {
   background-color: #dc3545 !important;
   border-color: #dc3545 !important;
   color: #fff !important;
 }
 
-/* SOLO EN MÓVILES: recortar y permitir salto de línea */
+/* Móviles: recortar y permitir salto de línea */
 @media (max-width: 900px) {
   #temporaryListTable .codigo-col,
   #temporaryListTable .nombre-col {
     max-width: 90px;
     white-space: normal;
     word-break: break-word;
-    font-size: 10px;
+    font-size: 10px !important;
     text-overflow: clip;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -964,8 +965,8 @@ input:checked + .slider:before {
     padding-left: 4px;
   }
   #temporaryListTable th, #temporaryListTable td {
-    font-size: 10px;
-    padding: 3px 4px;
+    font-size: 10px !important;
+    padding: 4px 4px !important;
   }
 }
   </style>
