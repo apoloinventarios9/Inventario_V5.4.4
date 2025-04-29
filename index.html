@@ -679,6 +679,93 @@ input:checked + .slider:before {
     min-width: 18px;
   }
 }
+
+/* Mejoras tabla modo continuo para PC */
+#temporaryList th.nombre-col,
+#temporaryList td.nombre-col {
+  max-width: 260px;
+  min-width: 120px;
+  width: 220px;
+  font-size: 9px !important;
+  white-space: normal;
+  word-break: break-word;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 5; /* máximo 5 líneas */
+  -webkit-box-orient: vertical;
+  line-height: 1.15;
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* Acciones más angosto */
+#temporaryList th.acciones-col,
+#temporaryList td.acciones-col {
+  min-width: 32px;
+  width: 36px;
+  padding-left: 2px;
+  padding-right: 2px;
+  text-align: center;
+}
+
+/* Botones solo icono */
+#temporaryList td.acciones-col .btn {
+  font-size: 13px;
+  padding: 2px 4px;
+  min-width: 20px;
+  margin: 0 1px;
+  line-height: 1;
+}
+
+/* Código y cantidad más compactos */
+#temporaryList th.codigo-col,
+#temporaryList td.codigo-col {
+  max-width: 80px;
+  min-width: 60px;
+  width: 70px;
+  font-size: 10px;
+  word-break: break-all;
+  font-family: monospace;
+}
+#temporaryList td.cant-col {
+  width: 50px;
+  min-width: 40px;
+  max-width: 60px;
+}
+
+/* Scroll horizontal en móviles */
+@media (max-width: 900px) {
+  #temporaryListContainer {
+    overflow-x: auto;
+  }
+  #temporaryList th.nombre-col,
+  #temporaryList td.nombre-col {
+    max-width: 120px;
+    min-width: 60px;
+    width: 90px;
+    font-size: 8px !important;
+    -webkit-line-clamp: 5;
+  }
+  #temporaryList th.acciones-col,
+  #temporaryList td.acciones-col {
+    min-width: 28px;
+    width: 30px;
+  }
+  #temporaryList td.acciones-col .btn {
+    font-size: 11px;
+    padding: 2px 2px;
+    min-width: 18px;
+  }
+}
+
+/* Evitar distorsión de filas */
+#temporaryList th, #temporaryList td {
+  vertical-align: middle;
+  text-align: center;
+  padding: 2px 4px;
+  height: auto;
+  white-space: normal;
+}
   </style>
 </head>
 <body>
