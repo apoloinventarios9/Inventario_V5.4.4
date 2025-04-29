@@ -536,39 +536,47 @@ input:checked + .slider:before {
 
 /* Mejoras tabla modo continuo */
 #temporaryList {
-  font-size: 11px; /* Reducir fuente */
+  font-size: 10px; /* Más pequeño */
 }
 
 #temporaryList th, #temporaryList td {
   vertical-align: middle;
   text-align: center;
-  padding: 4px 6px;
-  min-height: 36px;
-  height: 36px; /* Altura mínima de fila */
+  padding: 2px 4px;
+  /* Altura autoajustable */
+  min-height: 28px;
+  height: auto;
+}
+
+#temporaryList th.codigo-col,
+#temporaryList td.codigo-col {
+  max-width: 80px;
+  min-width: 60px;
+  width: 70px;
+  white-space: normal;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 10px;
 }
 
 #temporaryList th.nombre-col,
 #temporaryList td.nombre-col {
   max-width: 120px;
-  min-width: 90px;
-  width: 110px;
-  white-space: nowrap;
+  min-width: 60px;
+  width: auto;
+  white-space: normal;
+  word-break: break-word;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* máximo 2 líneas */
+  -webkit-box-orient: vertical;
+  font-size: 10px;
 }
 
-#temporaryList th.cant-col,
 #temporaryList td.cant-col {
   width: 60px;
-  min-width: 55px;
+  min-width: 50px;
   max-width: 70px;
-}
-
-#temporaryList th.eststock-col,
-#temporaryList td.eststock-col {
-  width: 70px;
-  min-width: 60px;
-  max-width: 80px;
 }
 
 #temporaryList td.eststock-col .badge {
@@ -577,31 +585,36 @@ input:checked + .slider:before {
   width: fit-content;
 }
 
+#temporaryList td.acciones-col {
+  min-width: 60px;
+  width: 70px;
+}
+
+#temporaryList td.acciones-col .btn {
+  font-size: 9px;
+  padding: 2px 5px;
+  margin: 1px 0;
+  min-width: 48px;
+}
+
 @media (max-width: 768px) {
-  #temporaryList {
-    font-size: 10px;
-  }
   #temporaryList th.nombre-col,
   #temporaryList td.nombre-col {
     max-width: 80px;
-    min-width: 60px;
-    width: 70px;
-  }
-  #temporaryList th.cant-col,
-  #temporaryList td.cant-col {
-    width: 45px;
     min-width: 40px;
+    font-size: 9px;
+    -webkit-line-clamp: 2;
+  }
+  #temporaryList th.codigo-col,
+  #temporaryList td.codigo-col {
     max-width: 60px;
+    min-width: 40px;
+    font-size: 9px;
   }
-  #temporaryList th.eststock-col,
-  #temporaryList td.eststock-col {
-    width: 55px;
-    min-width: 45px;
-    max-width: 65px;
-  }
-  #temporaryList td:last-child {
-    flex-direction: column;
-    gap: 3px;
+  #temporaryList td.acciones-col .btn {
+    font-size: 8px;
+    padding: 2px 3px;
+    min-width: 38px;
   }
 }
   </style>
@@ -700,11 +713,11 @@ input:checked + .slider:before {
             <table class="table table-sm table-bordered" id="temporaryListTable">
               <thead>
                 <tr>
-                  <th>Código</th>
+                  <th class="codigo-col">Código</th>
                   <th class="nombre-col">Nombre</th>
                   <th class="cant-col">Cant.</th>
                   <th class="eststock-col">Est./Stock</th>
-                  <th>Acciones</th>
+                  <th class="acciones-col">Acciones</th>
                 </tr>
               </thead>
               <tbody id="temporaryList"></tbody>
@@ -1202,7 +1215,7 @@ function updateTemporaryListUI() {
   temporaryList.forEach((item, index) => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${item.code}</td>
+      <td class="codigo-col" title="${item.code}">${item.code}</td>
       <td class="nombre-col" title="${item.name}">${item.name}</td>
       <td class="cant-col">${item.quantity}</td>
       <td class="eststock-col">
@@ -1213,9 +1226,9 @@ function updateTemporaryListUI() {
           ${item.stock === 1 ? 'Stock' : 'Sin Stock'}
         </span>
       </td>
-      <td>
-        <button class="btn btn-sm btn-primary" onclick="editTemporaryItem(${index})">Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="removeTemporaryItem(${index})">Eliminar</button>
+      <td class="acciones-col">
+        <button class="btn btn-primary btn-xs" onclick="editTemporaryItem(${index})">Editar</button>
+        <button class="btn btn-danger btn-xs" onclick="removeTemporaryItem(${index})">Eliminar</button>
       </td>
     `;
     listContainer.appendChild(row);
@@ -1223,6 +1236,23 @@ function updateTemporaryListUI() {
 
   pendingCount.textContent = temporaryList.length;
   totalProducts.textContent = temporaryList.length;
+}
+
+// Confirmación antes de eliminar
+function removeTemporaryItem(index) {
+  Swal.fire({
+    title: '¿Eliminar producto?',
+    text: '¿Estás seguro de eliminar este producto del lote temporal?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      temporaryList.splice(index, 1);
+      updateTemporaryListUI();
+    }
+  });
 }
 
 // Procesar el código escaneado
@@ -1294,12 +1324,6 @@ function editTemporaryItem(index) {
       updateTemporaryListUI();
     }
   });
-}
-
-// Eliminar un ítem de la lista temporal
-function removeTemporaryItem(index) {
-  temporaryList.splice(index, 1);
-  updateTemporaryListUI();
 }
 
 // Guardar todo el lote
