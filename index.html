@@ -1175,9 +1175,13 @@ function handleContinuousModeScan(productCode) {
     Swal.fire('Error', 'Producto no encontrado', 'error');
     return;
   }
+  // Solo agregar al lote temporal, sin advertencia de duplicados
+  addToTemporaryList(product);
+}
+
+function addToTemporaryList(product) {
   const existingItem = temporaryList.find(item => item.code === product.code);
   if (existingItem) {
-    // Sumar exactamente 1 por escaneo
     existingItem.quantity = Number(existingItem.quantity) + 1;
   } else {
     temporaryList.push({
@@ -1225,6 +1229,90 @@ function saveBatch() {
     return;
   }
 
+  // Validar duplicados en el historial (últimas 24 horas)
+  const now = new Date();
+  const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+  const duplicatedItems = temporaryList.filter(item =>
+    counts.some(c =>
+      c.productCode === item.code &&
+      new Date(c.timestamp) > twentyFourHoursAgo
+    )
+  );
+
+  if (duplicatedItems.length > 0) {
+    // Mostrar advertencia con detalle de duplicados
+    const duplicatesHTML = duplicatedItems.map(item => {
+      // Buscar todos los duplicados en el historial para este producto
+      const history = counts.filter(c =>
+        c.productCode === item.code &&
+        new Date(c.timestamp) > twentyFourHoursAgo
+      );
+      return `
+        <tr>
+          <td>${item.code}</td>
+          <td>${item.name}</td>
+          <td>
+            <table class="table table-sm table-bordered mb-0">
+              <thead>
+                <tr>
+                  <th>Cantidad</th>
+                  <th>Ubicación</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${history.map(h => `
+                  <tr>
+                    <td>${h.quantity}</td>
+                    <td>${h.location || ''}</td>
+                    <td>${new Date(h.timestamp).toLocaleString()}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    Swal.fire({
+      title: 'Advertencia de Duplicados',
+      html: `
+        <p>Se han detectado productos en el lote que ya tienen registros en las últimas 24 horas:</p>
+        <div style="max-height: 250px; overflow-y: auto;">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Historial reciente</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${duplicatesHTML}
+            </tbody>
+          </table>
+        </div>
+        <p class="text-danger font-weight-bold">¿Deseas guardar el lote de todas formas?</p>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, guardar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        saveBatchConfirmed();
+      }
+      // Si cancela, no hace nada
+    });
+    return;
+  }
+
+  // Si no hay duplicados, guardar normalmente
+  saveBatchConfirmed();
+}
+
+function saveBatchConfirmed() {
   temporaryList.forEach(item => {
     counts.push({
       productCode: item.code,
