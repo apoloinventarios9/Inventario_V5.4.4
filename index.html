@@ -1920,32 +1920,44 @@ $(document).ready(() => {
   });
 });
 
-// Detectar entrada rápida (simulación de pistola escáner)
+// Detectar entrada rápida (escáner) y permitir búsqueda manual en modo continuo
 let scanBuffer = '';
 let lastKeyTime = 0;
+const SCANNER_KEY_INTERVAL = 80; // ms, ajusta según tu escáner
 
 document.getElementById('continuousSearch').addEventListener('keydown', (event) => {
   const now = Date.now();
   const timeDiff = now - lastKeyTime;
   lastKeyTime = now;
 
-  // Si la diferencia entre teclas es mayor a 30 ms, es probable que sea manual, limpiar buffer
-  if (timeDiff > 30) {
-    scanBuffer = '';
+  // Solo acumula caracteres imprimibles (evita teclas como Shift, Ctrl, etc.)
+  if (event.key.length === 1) {
+    // Si la pulsación fue lenta, limpiar buffer (es probable que sea manual)
+    if (timeDiff > SCANNER_KEY_INTERVAL) {
+      scanBuffer = '';
+    }
+    scanBuffer += event.key;
   }
 
-  // Agregar la tecla presionada al buffer
-  scanBuffer += event.key;
-
-  // Si se presiona "Enter", procesar el código solo si el buffer tiene más de 3 caracteres (evita enter manual)
-  if (event.key === 'Enter' && scanBuffer.length > 3) {
+  // Procesar al presionar Enter si el buffer tiene al menos 6 caracteres (ajusta si tus códigos son más cortos)
+  if (event.key === 'Enter' && scanBuffer.length > 5) {
     event.preventDefault();
     processScannedCode(scanBuffer.trim());
     scanBuffer = '';
     document.getElementById('continuousSearch').value = '';
+    document.getElementById('continuousSuggestions').innerHTML = '';
+    document.getElementById('continuousSuggestions').style.display = 'none';
     return;
   }
+
+  // Si se presiona Enter pero el buffer es corto, permite búsqueda manual
+  if (event.key === 'Enter') {
+    scanBuffer = '';
+  }
 });
+
+// El input sigue funcionando para búsqueda manual y sugerencias
+document.getElementById('continuousSearch').addEventListener('input', debounce(filterContinuousProducts, 300));
 </script>
 
 </body>
