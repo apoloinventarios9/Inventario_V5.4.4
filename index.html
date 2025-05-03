@@ -1922,31 +1922,29 @@ $(document).ready(() => {
 
 // Detectar entrada rápida (simulación de pistola escáner)
 let scanBuffer = '';
-let scanTimeout;
+let lastKeyTime = 0;
 
 document.getElementById('continuousSearch').addEventListener('keydown', (event) => {
-  clearTimeout(scanTimeout);
+  const now = Date.now();
+  const timeDiff = now - lastKeyTime;
+  lastKeyTime = now;
+
+  // Si la diferencia entre teclas es mayor a 30 ms, es probable que sea manual, limpiar buffer
+  if (timeDiff > 30) {
+    scanBuffer = '';
+  }
 
   // Agregar la tecla presionada al buffer
   scanBuffer += event.key;
 
-  // Si se presiona "Enter", procesar el código
-  if (event.key === 'Enter') {
+  // Si se presiona "Enter", procesar el código solo si el buffer tiene más de 3 caracteres (evita enter manual)
+  if (event.key === 'Enter' && scanBuffer.length > 3) {
     event.preventDefault();
     processScannedCode(scanBuffer.trim());
-    scanBuffer = ''; // Limpiar el buffer
-    document.getElementById('continuousSearch').value = ''; // Limpiar el campo de entrada
+    scanBuffer = '';
+    document.getElementById('continuousSearch').value = '';
     return;
   }
-
-  // Si no se presiona "Enter", esperar un tiempo para determinar si es un escaneo rápido
-  scanTimeout = setTimeout(() => {
-    if (scanBuffer.length > 0) {
-      processScannedCode(scanBuffer.trim());
-      scanBuffer = ''; // Limpiar el buffer
-      document.getElementById('continuousSearch').value = ''; // Limpiar el campo de entrada
-    }
-  }, 100); // Tiempo de espera para detectar entrada rápida (100 ms)
 });
 </script>
 
