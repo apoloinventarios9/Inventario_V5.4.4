@@ -1919,6 +1919,35 @@ $(document).ready(() => {
     }
   });
 });
+
+// Detectar entrada rápida (simulación de pistola escáner)
+let scanBuffer = '';
+let scanTimeout;
+
+document.getElementById('continuousSearch').addEventListener('keydown', (event) => {
+  clearTimeout(scanTimeout);
+
+  // Agregar la tecla presionada al buffer
+  scanBuffer += event.key;
+
+  // Si se presiona "Enter", procesar el código
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    processScannedCode(scanBuffer.trim());
+    scanBuffer = ''; // Limpiar el buffer
+    document.getElementById('continuousSearch').value = ''; // Limpiar el campo de entrada
+    return;
+  }
+
+  // Si no se presiona "Enter", esperar un tiempo para determinar si es un escaneo rápido
+  scanTimeout = setTimeout(() => {
+    if (scanBuffer.length > 0) {
+      processScannedCode(scanBuffer.trim());
+      scanBuffer = ''; // Limpiar el buffer
+      document.getElementById('continuousSearch').value = ''; // Limpiar el campo de entrada
+    }
+  }, 100); // Tiempo de espera para detectar entrada rápida (100 ms)
+});
 </script>
 
 </body>
