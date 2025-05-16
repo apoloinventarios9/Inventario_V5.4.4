@@ -1093,6 +1093,93 @@ document.getElementById('continuousScanButton').addEventListener('click', () => 
   });
 });
 
+// Mejoras para el escáner: zoom y enfoque manual
+async function showScannerModal() {
+  $('#scannerModal').modal('show');
+  $('#scannerModal .modal-body').append(`
+    <div id="camera-controls" style="margin-top:10px; display:none;">
+      <label style="font-size:11px;">Zoom: <input type="range" id="zoomSlider" min="1" max="1" step="0.1" value="1" style="width:120px;vertical-align:middle;"></label>
+      <label style="font-size:11px;margin-left:10px;">Enfoque: <input type="range" id="focusSlider" min="0" max="0" step="1" value="0" style="width:120px;vertical-align:middle;"></label>
+    </div>
+  `);
+
+  const qrRegionId = "qr-reader";
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode(qrRegionId);
+  }
+
+  // Obtener la cámara trasera
+  const devices = await Html5Qrcode.getCameras();
+  const backCamera = devices.find(d => d.label.toLowerCase().includes('back')) || devices[0];
+
+  // Iniciar el escáner con la cámara seleccionada
+  const config = { fps: 15, qrbox: 250, aspectRatio: 1.777 };
+  html5QrCode.start(
+    { deviceId: { exact: backCamera.id } },
+    config,
+    async (decodedText) => {
+      await html5QrCode.stop();
+      $('#scannerModal').modal('hide');
+      processScannedCode(decodedText);
+    }
+  ).then(() => {
+    // Acceder al stream de video para controles avanzados
+    const video = document.querySelector('#scannerModal video');
+    if (video && video.srcObject) {
+      const [track] = video.srcObject.getVideoTracks();
+      const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+      const settings = track.getSettings ? track.getSettings() : {};
+
+      // Mostrar controles si hay capacidades
+      if (capabilities.zoom || capabilities.focusDistance) {
+        document.getElementById('camera-controls').style.display = 'block';
+      }
+
+      // Zoom
+      if (capabilities.zoom) {
+        const zoomSlider = document.getElementById('zoomSlider');
+        zoomSlider.min = capabilities.zoom.min;
+        zoomSlider.max = capabilities.zoom.max;
+        zoomSlider.step = capabilities.zoom.step || 0.1;
+        zoomSlider.value = settings.zoom || capabilities.zoom.min;
+        zoomSlider.oninput = function () {
+          track.applyConstraints({ advanced: [{ zoom: Number(this.value) }] });
+        };
+      }
+
+      // Enfoque manual
+      if (capabilities.focusMode && capabilities.focusMode.includes('manual') && capabilities.focusDistance) {
+        const focusSlider = document.getElementById('focusSlider');
+        focusSlider.min = capabilities.focusDistance.min;
+        focusSlider.max = capabilities.focusDistance.max;
+        focusSlider.step = capabilities.focusDistance.step || 1;
+        focusSlider.value = settings.focusDistance || capabilities.focusDistance.min;
+        focusSlider.oninput = function () {
+          track.applyConstraints({ advanced: [{ focusMode: 'manual', focusDistance: Number(this.value) }] });
+        };
+      } else if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+        // Si solo hay enfoque automático, intenta forzarlo
+        track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+      }
+    }
+  }).catch((error) => {
+    Swal.fire('Error', 'No se pudo acceder a la cámara', 'error');
+    console.error(error);
+  });
+
+  // Limpiar controles al cerrar
+  $('#scannerModal').on('hidden.bs.modal', function () {
+    if (html5QrCode) {
+      html5QrCode.stop().catch(() => {});
+    }
+    $('#camera-controls').remove();
+  });
+}
+
+// Reemplaza los listeners de los botones de escaneo por:
+document.getElementById('scanButton').onclick = showScannerModal;
+document.getElementById('continuousScanButton').onclick = showScannerModal;
+
 // Actualizar la interfaz de la lista temporal
 function updateTemporaryListUI() {
   const listContainer = document.getElementById('temporaryList');
