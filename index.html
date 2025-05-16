@@ -1110,8 +1110,8 @@ function updateTemporaryListUI() {
         <span class="badge ${item.status === 1 ? 'badge-success' : 'badge-danger'}" style="margin-bottom:2px;">
           ${item.status === 1 ? 'Activo' : 'Inactivo'}
         </span>
-        <span class="badge ${item.stock === 1 ? 'badge-success' : 'badge-danger'}">
-          ${item.stock === 1 ? 'Stock' : 'Sin Stock'}
+        <span class="badge ${item.stock > 0 ? 'badge-success' : 'badge-danger'}">
+          ${item.stock > 0 ? `${item.stock} STOCK` : 'SIN STOCK'}
         </span>
       </td>
       <td class="acciones-col">
@@ -1419,15 +1419,15 @@ document.getElementById('excelFile').addEventListener('change', function (e) {
 
   readXlsxFile(file).then((rows) => {
     products = rows.slice(1).map(row => {
-      const barcodes = row[0]?.toString().trim() || ''; // Códigos de barras
-      const barcodeArray = barcodes.split('|').map(b => b.trim()); // Separar por "|"
+      const barcodes = row[0]?.toString().trim() || '';
+      const barcodeArray = barcodes.split('|').map(b => b.trim());
       return {
-        barcodes: barcodeArray, // Guardar como array
+        barcodes: barcodeArray,
         code: row[1]?.toString().trim() || '',
         name: row[2]?.toString().trim() || 'Sin nombre',
         measure: row[3]?.toString().trim() || 'UND',
         status: parseInt(row[4]) || 0,
-        stock: parseInt(row[5]) || 0
+        stock: Number(row[5]) || 0
       };
     }).filter(p => p.code);
 
@@ -1515,8 +1515,8 @@ function selectProduct(product) {
     statusBox.className = 'status-box inactive-status';
   }
 
-  if (product.stock === 1) {
-    stockBox.textContent = 'CON STOCK';
+  if (product.stock > 0) {
+    stockBox.textContent = `${product.stock} STOCK`;
     stockBox.className = 'status-box stock-status';
   } else {
     stockBox.textContent = 'SIN STOCK';
